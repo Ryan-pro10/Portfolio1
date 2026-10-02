@@ -15,10 +15,13 @@
       --green-dim: rgba(62,207,142,0.12);
     }
 
-    html { scroll-behavior: smooth; }
+    html {
+      scroll-behavior: smooth;
+      background: var(--bg);
+    }
 
     body {
-      background: var(--bg);
+      background: transparent;
       color: var(--text);
       font-family: 'DM Sans', sans-serif;
       font-size: 16px;
@@ -378,22 +381,15 @@
       left: 0; top: 0; bottom: 0;
       width: 1px;
       background: linear-gradient(to bottom, var(--accent), transparent);
+      transform-origin: top;
+      transition: transform 1.4s cubic-bezier(0.22, 0.61, 0.36, 1);
     }
+    .js-anim .timeline::before { transform: scaleY(0); }
+    .js-anim .timeline.is-drawn::before { transform: scaleY(1); }
 
     .timeline-item {
       position: relative;
       padding-bottom: 2.5rem;
-      opacity: 0;
-      transform: translateX(-10px);
-      animation: fadeInLeft 0.5s forwards;
-    }
-    .timeline-item:nth-child(1) { animation-delay: 0.1s; }
-    .timeline-item:nth-child(2) { animation-delay: 0.2s; }
-    .timeline-item:nth-child(3) { animation-delay: 0.3s; }
-    .timeline-item:nth-child(4) { animation-delay: 0.4s; }
-
-    @keyframes fadeInLeft {
-      to { opacity: 1; transform: translateX(0); }
     }
 
     .timeline-dot {
@@ -405,6 +401,28 @@
       background: var(--accent);
       border: 2px solid var(--bg);
       box-shadow: 0 0 0 3px var(--accent-glow);
+      transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+      transition-delay: var(--reveal-delay, 0s);
+    }
+    .js-anim .timeline-dot { transform: scale(0); }
+    .js-anim .timeline-item.is-visible .timeline-dot { transform: scale(1); }
+
+    /* onda que sai do ponto quando ele aparece */
+    .timeline-dot::after {
+      content: '';
+      position: absolute;
+      inset: -3px;
+      border-radius: 50%;
+      border: 1px solid var(--accent2);
+      opacity: 0;
+    }
+    .timeline-item.is-visible .timeline-dot::after {
+      animation: ping 1.8s ease-out 0.3s infinite;
+    }
+
+    @keyframes ping {
+      0% { transform: scale(0.8); opacity: 0.7; }
+      70%, 100% { transform: scale(2.6); opacity: 0; }
     }
 
     .timeline-period {
@@ -431,7 +449,7 @@
 
     /* CONTATO */
     #contato {
-      background: var(--bg2);
+      background: rgba(17,17,24,0.72);
       border-top: 0.5px solid var(--border);
       border-bottom: 0.5px solid var(--border);
     }
@@ -520,8 +538,39 @@
     .hero-photo-wrap {
       flex-shrink: 0;
       position: relative;
+      perspective: 800px;
     }
+
+    /* aura pulsante atrás da foto */
+    .hero-photo-wrap::before {
+      content: '';
+      position: absolute;
+      inset: -40px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(124,109,247,0.25) 0%, transparent 65%);
+      animation: aura 5s ease-in-out infinite;
+      pointer-events: none;
+    }
+
+    /* segundo anel, girando ao contrário */
+    .hero-photo-wrap::after {
+      content: '';
+      position: absolute;
+      inset: -28px;
+      border-radius: 50%;
+      border: 1px solid rgba(124,109,247,0.14);
+      border-top-color: rgba(185,174,255,0.5);
+      animation: spin 26s linear infinite reverse;
+      pointer-events: none;
+    }
+
+    @keyframes aura {
+      0%, 100% { opacity: 0.5; transform: scale(0.95); }
+      50% { opacity: 1; transform: scale(1.06); }
+    }
+
     .hero-photo {
+      position: relative;
       width: 280px;
       height: 280px;
       border-radius: 50%;
@@ -530,6 +579,8 @@
       border: 2px solid rgba(124,109,247,0.35);
       box-shadow: 0 0 0 8px rgba(124,109,247,0.07);
       display: block;
+      transition: transform 0.4s cubic-bezier(0.22, 0.61, 0.36, 1);
+      will-change: transform;
     }
     .hero-photo-ring {
       position: absolute;
@@ -548,4 +599,92 @@
     @media (max-width: 640px) {
       nav ul { gap: 1rem; }
       .hero-name { font-size: 2.8rem; }
+    }
+
+    /* ===== ANIMAÇÕES ===== */
+
+    .stars-canvas {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+    }
+
+    .scroll-progress {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      transform: scaleX(0);
+      transform-origin: 0 50%;
+      z-index: 200;
+      pointer-events: none;
+    }
+
+    /* Só esconde o conteúdo se o JS estiver ativo */
+    .js-anim [data-reveal] {
+      opacity: 0;
+      transform: translateY(26px);
+      transition: opacity 0.7s cubic-bezier(0.22, 0.61, 0.36, 1),
+                  transform 0.7s cubic-bezier(0.22, 0.61, 0.36, 1);
+      transition-delay: var(--reveal-delay, 0s);
+    }
+    .js-anim [data-reveal="left"] { transform: translateX(-26px); }
+    .js-anim [data-reveal].is-visible { opacity: 1; transform: none; }
+
+    nav { transition: padding 0.3s ease, background 0.3s ease, box-shadow 0.3s ease; }
+    nav.scrolled {
+      padding-top: 0.8rem;
+      padding-bottom: 0.8rem;
+      background: rgba(10,10,15,0.93);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+    }
+
+    nav ul a { position: relative; }
+    nav ul a::after {
+      content: '';
+      position: absolute;
+      left: 0; right: 0; bottom: -5px;
+      height: 1.5px;
+      border-radius: 2px;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      transform: scaleX(0);
+      transform-origin: 0 50%;
+      transition: transform 0.3s cubic-bezier(0.22, 0.61, 0.36, 1);
+    }
+    nav ul a:hover::after,
+    nav ul a.is-active::after { transform: scaleX(1); }
+    nav ul a.is-active { color: var(--text); }
+
+    /* Brilho que segue o cursor */
+    .skill-card { position: relative; overflow: hidden; }
+    .project-card > *, .skill-card > * { position: relative; z-index: 1; }
+    .project-card::after, .skill-card::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      border-radius: inherit;
+      background: radial-gradient(
+        260px circle at var(--mx, 50%) var(--my, 50%),
+        rgba(124,109,247,0.16),
+        transparent 65%
+      );
+      opacity: 0;
+      transition: opacity 0.35s ease;
+      pointer-events: none;
+    }
+    .project-card:hover::after, .skill-card:hover::after { opacity: 1; }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      .js-anim [data-reveal] { opacity: 1; transform: none; transition: none; }
+      .js-anim .timeline::before { transform: scaleY(1); }
+      .js-anim .timeline-dot { transform: scale(1); }
+      .hero-photo-ring,
+      .hero-photo-wrap::before,
+      .hero-photo-wrap::after,
+      .hero-tag::before,
+      .timeline-item.is-visible .timeline-dot::after { animation: none; }
+      .scroll-progress { display: none; }
     }
